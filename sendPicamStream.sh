@@ -1,0 +1,1 @@
+libcamera-vid -t 0 --inline --width 1296 --height 972 -o - | nc -k -l 8081

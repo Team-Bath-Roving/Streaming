@@ -1,0 +1,1 @@
+gst-launch-1.0 -v v4l2src device-name="UVC Camera" ! 'image/jpeg,width=640,height=480' ! tcpserversink host=0.0.0.0 port=8082
