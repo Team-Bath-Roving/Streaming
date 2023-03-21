@@ -103,6 +103,9 @@ def stop():
     cv2.destroyAllWindows()
     sys.exit()
 
+
+# To recieve non multicast UDP, set IP to 127.0.0.1
+# Stereo simply doubles the output width
 clients=[
         StreamClient("Stereo","stereocam","tcp",8081,640,480,stereo=True),
         # StreamClient("Stereo","127.0.0.1","udp",8081,720,640,stereo=True),
