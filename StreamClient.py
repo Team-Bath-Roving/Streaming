@@ -2,18 +2,6 @@ import subprocess
 import cv2
 import numpy as np
 import threading
-import time
-import sys
-from signal import signal, SIGINT
-
-
-running=True
-
-def handler(signal_received, frame):
-    # Handle any cleanup here
-    stop()
-
-signal(SIGINT, handler)
 
 class StreamClient:
     thread=None
@@ -24,7 +12,7 @@ class StreamClient:
         "udp":f"?buffer_size=1000&fifo_size={3*4096}",
         "tcp":"?tcp_nodelay=1",
         "rtsp":"?buffer_size=1000&reorder_queue_size=100",
-        "rtc":"",
+        "rtp":"",
     }
     def __init__(self,name,host,type,port,width,height,stereo=False):
         self.name=name
@@ -96,34 +84,3 @@ class StreamClient:
         
 
 
-
-def stop():
-    for s in clients:
-        s.stop()
-    cv2.destroyAllWindows()
-    sys.exit()
-
-
-# To recieve non multicast UDP, set IP to 127.0.0.1
-# Stereo simply doubles the output width
-clients=[
-        StreamClient("Stereo","stereocam","tcp",8081,640,480,stereo=True),
-        # StreamClient("Stereo","127.0.0.1","udp",8081,720,640,stereo=True),
-        # StreamClient("USB","stereocam","tcp",8082,640,480),
-        StreamClient("USB","127.0.0.1","udp",8082,640,480),
-        # StreamClient("Stereo","stereocam","rtsp","8554/stream1",640,480,stereo=True),
-        ]
-
-
-def displayStreams(clients):
-    k=''
-    while (not k==ord('q')) and running:
-        try:
-            k=cv2.waitKey(0) & 0xFF
-            for s in clients:
-                if s.running:
-                    s.display()
-        except KeyboardInterrupt:
-            stop()
-
-displayStreams(clients)
