@@ -4,6 +4,7 @@ import numpy as np
 import threading
 import time
 import sys
+import ffmpeg
 
 class camera:
     process=None
@@ -27,26 +28,14 @@ class camera:
         options=""
         if self.type=="udp":
             options="?buffer_size=10000"
-        else:
+        elif self.type=="tcp":
             options="?tcp_nodelay=1"
-        command = ['ffmpeg.exe',
-            '-hide_banner',
-            '-probesize','500000',
-            '-analyzeduration','0',
-            '-flags', 'low_delay',
-            '-strict','experimental',
-            '-hwaccel','auto',
-            '-i', f'{self.type}://{self.host}:{self.port}{options}',
-            '-vf',f"scale={self.width}:{self.height}",
-            '-fflags', "nobuffer",
-            '-f', 'rawvideo',      # Get rawvideo output format.
-            '-pix_fmt', 'bgr24',   # Set BGR pixel format
-            'pipe:']
-        try:
-            self.process.kill()
-        except:
-            pass
-        self.process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        self.process = (
+            ffmpeg
+            .input(f'{self.type}://{self.host}:{self.port}')
+            .output('pipe:', format='rawvideo', pix_fmt='rgb24')
+            .run_async(pipe_stdout=True)
+        )
     def read(self):
         raw_frame = self.process.stdout.read(self.width*self.height*3)
         self.frame= np.frombuffer(raw_frame, np.uint8).reshape((self.height, self.width, 3))
@@ -58,32 +47,26 @@ class camera:
         self.process.kill()
         self.process.wait()  # Wait for FFmpeg sub-process to finish
 
-
-
 def stop():
     cv2.destroyAllWindows()
     sys.exit()
 
 def runcamera(cam):
     cam.start()
-    while True:
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+    while cam.running():
+        if cv2.waitKey(16) & 0xFF == ord('q'):
             break
-        if not cam.running():
-            cam.stop()
-            cam.start()
-        try:
-            cam.display()
-        except:
-            pass
-    cam.stop()
+        cam.display()
 
 
 cameras=[
         camera("Stereo","stereocam","tcp",8081,640,480,stereo=True),
         # camera("Stereo","127.0.0.1","udp",8081,640,480,stereo=True),
         # camera("USB","stereocam","tcp",8082,640,480),
-        camera("USB","127.0.0.1","udp",8082,640,480)
+        # camera("USB","127.0.0.1","udp",8082,640,480),
+        # camera("self","127.0.0.1","rtsp",8554,640,480),
+        # camera("self","127.0.0.1","udp",1234,640,480),
+        # camera("self","127.0.0.1","rtp",5004,640,480),
         ]
 
 
