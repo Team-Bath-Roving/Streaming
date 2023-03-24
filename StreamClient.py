@@ -52,12 +52,15 @@ class StreamClient:
         try:
             self.process.stdout.close()  # Closing stdout terminates FFmpeg sub-process.
             self.process.kill()
+            self.process.terminate()
         except:
             pass
         self.process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     def read(self):
         raw_frame = self.process.stdout.read(self.width*self.height*3)
-        self.frame= np.frombuffer(raw_frame, np.uint8).reshape((self.height, self.width, 3))
+        # print(len(raw_frame))
+        self.frame = np.frombuffer(raw_frame, np.uint8).reshape((self.height, self.width, 3))
+        # print(len(self.frame))
     def run(self):
         self.start()
         while(True):
@@ -71,16 +74,17 @@ class StreamClient:
                 except:
                     pass
     def display(self):
-        try:
-            cv2.imshow(self.name, self.frame)
-        except Exception as e:
-            pass
+        if not self.frame is None:
+            try:
+                cv2.waitKey(1)
+                cv2.imshow(self.name, self.frame)
+            except Exception as e:
+                print(e)
     def stop(self):
         self.end=True
+        self.process.stdout.close()  # Closing stdout terminates FFmpeg sub-process.
         self.process.kill()
         self.process.terminate()
-        self.process.stdout.close()  # Closing stdout terminates FFmpeg sub-process.
-        
         
 
 

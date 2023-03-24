@@ -5,7 +5,7 @@ import threading
 import time
 import sys
 from signal import signal, SIGINT
-import StreamClient
+from StreamClient import StreamClient
 
 running=True
 
@@ -17,6 +17,7 @@ signal(SIGINT, handler)
 
 
 def stop():
+    print("STOPPING")
     for s in clients:
         s.stop()
     cv2.destroyAllWindows()
@@ -29,21 +30,16 @@ def stop():
 clients=[
         StreamClient("Stereo","stereocam","tcp",8081,720,640,stereo=True),
         # StreamClient("Stereo","127.0.0.1","udp",8081,720,640,stereo=True),
-        StreamClient("USB","stereocam","tcp",8082,640,480),
+        # StreamClient("USB","stereocam","tcp",8082,640,480),
         # StreamClient("USB","127.0.0.1","udp",8082,640,480),
         # StreamClient("Stereo","stereocam","rtsp","8554/stream1",640,480,stereo=True),
         ]
 
 
 def displayStreams(clients):
-    k=''
-    while (not k==ord('q')) and running:
-        try:
-            k=cv2.waitKey(0) & 0xFF
-            for s in clients:
-                if s.running:
-                    s.display()
-        except KeyboardInterrupt:
-            stop()
+    while (not (cv2.waitKey(1) & 0xFF)==ord('q')) and running:
+        for s in clients:
+            s.display()
+    stop()
 
 displayStreams(clients)
