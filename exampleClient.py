@@ -28,8 +28,8 @@ def stop():
 # Stereo simply doubles the output width
 # Output resolution defined here is independent of what is transmitted
 clients=[
-        StreamClient("Stereo","stereocam","tcp",8081,720,640,stereo=True),
-        # StreamClient("Stereo","127.0.0.1","udp",8081,720,640,stereo=True),
+        # StreamClient("Stereo","stereocam","tcp",8081,720,640,stereo=True),
+        StreamClient("Stereo","127.0.0.1","udp",8081,720,640,stereo=True),
         # StreamClient("USB","stereocam","tcp",8082,640,480),
         # StreamClient("USB","127.0.0.1","udp",8082,640,480),
         # StreamClient("Stereo","stereocam","rtsp","8554/stream1",640,480,stereo=True),
@@ -41,5 +41,6 @@ def displayStreams(clients):
         for s in clients:
             s.display()
     stop()
+
 
 displayStreams(clients)
