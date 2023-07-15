@@ -1,5 +1,5 @@
 # Camera-Streaming
-Python scripts to send and recieve camera streams with low latency. The best I've got so far is 22ms!
+Python scripts to send and recieve camera streams with low latency. The best I've got so far is 200ms!
 
 ## Client
 FFMPEG is used to receive TCP, UDP/Multicast or RTSP streams from the given IP and port. The video encoding is detected and handled automatically by FFMPEG.  
