@@ -56,12 +56,13 @@ class StreamClient:
             self.process.terminate()
         except:
             pass
-        self.process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        self.process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,stderr=subprocess.DEVNULL)
     def read(self):
         raw_frame = self.process.stdout.read(self.width*self.height*3)
         # print(len(raw_frame))
         self.frame = np.frombuffer(raw_frame, np.uint8).reshape((self.height, self.width, 3))
         # print(len(self.frame))
+        return self.frame
     def run(self):
         self.start()
         while(True):
