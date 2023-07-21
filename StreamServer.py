@@ -2,10 +2,19 @@ import socket
 import time
 
 from picamera2 import Picamera2
-from picamera2.encoders import H264Encoder
-from picamera2.outputs import FileOutput
+from picamera2.encoders import H264Encoder, Encoder
+from picamera2.outputs import FileOutput#, FFMPEGOutput
 
 from Comms.Output import Output
+
+from v4l2 import *
+
+from picamera2.formats import ALL_FORMATS
+
+ALL_FORMATS=ALL_FORMATS | {"MJPEG"}
+
+class durationlimit:
+    min=33333
 
 class StreamServer:
     cam_list=None
@@ -27,7 +36,7 @@ class StreamServer:
                 if not StreamServer.active_cams[idx]: # skip this one if it's already been claimed
                     # Determine if CSI or USB (YUV or YUYV/MJPEG)
                     if "usb" in camera["Id"]:
-                        usb=True
+                        self.usb=True
                     # Initialise camera
                     output.write("INFO",f"Found camera {model} at index {idx}",True)
                     self.cam=Picamera2(idx)
@@ -40,18 +49,27 @@ class StreamServer:
         StreamServer.cam_list=Picamera2.global_camera_info()
         for cam in StreamServer.cam_list:
             StreamServer.active_cams.append(False)
-        # print(StreamServer.cam_list)
-    def configure(self,width,height,format=None):
+        print(StreamServer.cam_list)
+    def configure(self,width,height,video_format=None):
         if not self.cam is None:
             config={"size":(width,height)}
-            if not format is None:
-                config["format"]=format
+            if not video_format is None:
+                config["format"]=video_format
+            # if self.usb:
+            #     try:
+            #         self.cam.configure(self.cam.create_video_configuration(config,controls={'FrameDurationLimits': (33333, 33333)}))
+            #     except:
+            #         pass
+            # else:
             self.cam.configure(self.cam.create_video_configuration(config))
             self.output.write("INFO",f"Applied config to camera {self.model}",True)
     def start(self,ip,port,multicast=True):
         if not self.cam is None:
             if not self.usb:
                 self.encoder=H264Encoder(100000,repeat=True,iperiod=5)
+            else:
+                self.encoder=Encoder()
+                # self.encoder=H264Encoder(100000,repeat=True,iperiod=5)
             if multicast:
                 self.sock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
                 self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
@@ -59,6 +77,8 @@ class StreamServer:
                 self.sock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
             self.sock.connect((ip, port))
             self.stream = self.sock.makefile("wb")
+            if self.usb:
+                self.cam.camera_ctrl_info["FrameDurationLimits"]=[durationlimit(),durationlimit()]
             self.cam.start_recording(self.encoder, FileOutput(self.stream))
             self.output.write("INFO",f"Started UDP stream \"{self.name}\" from camera {self.model} to {ip}:{port}",True)
     def stop(self):
