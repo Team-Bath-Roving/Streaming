@@ -5,6 +5,8 @@ import sys
 from StreamServer import StreamServer
 from Comms.Output import Output
 
+from libcamera import controls
+
 from signal import signal, SIGINT
 
 # config
@@ -23,6 +25,8 @@ stream=StreamServer(out,MODEL,NAME) # system finds the camera based upon the mod
 stream.configure(WIDTH,HEIGHT)
 stream.start(IP,PORT,MULTICAST) # using a multicast address 224.1.1.1:5008
 stream.set_bitrate(5000000)
+
+#stream.set_controls({"AfMode": controls.AfModeEnum.Continuous}) # set a libcamera control
 
 # exit handler
 def handler(signal_received,frame):
