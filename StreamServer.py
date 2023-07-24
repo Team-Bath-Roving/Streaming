@@ -5,6 +5,8 @@ from picamera2 import Picamera2
 from picamera2.encoders import H264Encoder, Encoder
 from picamera2.outputs import FileOutput#, FFMPEGOutput
 
+from libcamera import controls
+
 from Comms.Output import Output
 
 from v4l2 import *
