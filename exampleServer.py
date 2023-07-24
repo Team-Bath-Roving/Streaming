@@ -1,5 +1,6 @@
 
 import time
+import sys
 
 from StreamServer import StreamServer
 from Comms.Output import Output
@@ -23,20 +24,21 @@ stream.configure(WIDTH,HEIGHT)
 stream.start(IP,PORT,MULTICAST) # using a multicast address 224.1.1.1:5008
 stream.set_bitrate(5000000)
 
+# exit handler
+def handler(signal_received,frame):
+    stream.stop()
+    sys.exit()
+
+signal(SIGINT, handler)
+
 # Example of script to change settings of camera
 i=10
-running=True
-while(running): # stream ends once this thread ends
+while(True): # stream ends once this thread ends
     time.sleep(0.01)
     i+=10
     stream.set_exposure(i)
 
 
-# exit handler
-def handler(signal_received,frame):
-    stream.stop()
-    running=False
 
-signal(SIGINT, handler)
 
 
